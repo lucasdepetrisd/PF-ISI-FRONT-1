@@ -1,51 +1,67 @@
 import React, { useState } from "react";
-import { sendMessageToChatbot } from "../helpers/chatbotApi.js";
-import "../css/chatbot.css"; // Si necesitas algún estilo, puedes crear el archivo CSS
+import { sendMessageToChatbot } from "../helpers/chatbotApi";
+import "../css/chatbot.css";
+import { Spinner } from "react-bootstrap";
 
 const ChatbotScreen = () => {
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async () => {
-    if (!message.trim()) return;
+    if (!message.trim()) return; // Evita enviar mensajes vacíos
+    setIsLoading(true);
 
     try {
-      // Llama a la función sendChatbotMessage de helpers/chatbotApi
-      const botResponse = await sendMessageToChatbot(message);
-
-      // Actualiza el historial del chat con el mensaje del usuario y la respuesta del bot
+      const response = await sendMessageToChatbot(message, chatHistory);
       setChatHistory([
         ...chatHistory,
-        { sender: "user", text: message },
-        { sender: "bot", text: botResponse },
+        { autor: "usuario", contenido: message },
+        { autor: "bot", contenido: response.respuesta_bot },
       ]);
-
-      setMessage(""); // Limpia el mensaje después de enviarlo
+      setMessage("");
     } catch (error) {
       console.error("Error al enviar mensaje:", error);
+    } finally {
+      setIsLoading(false); // Oculta el spinner
     }
   };
 
   return (
-    <div className="chatbot-container mt-5">
-      <div className="chat-history">
+    <div className="chatbot-container mt-5 mx-auto p-3 shadow">
+      <h2 className="text-center mb-4 color-title">Chatbot</h2>
+      <div className="chat-history p-3 bg-light rounded overflow-auto">
         {chatHistory.map((msg, index) => (
-          <div key={index} className={`chat-message ${msg.sender}`}>
-            {msg.sender === "user" ? "Tú: " : "Bot: "}
-            {msg.text}
+          <div key={index} className={`chat-message ${msg.autor}`}>
+            <strong>{msg.autor === "usuario" ? "Tú: " : "Bot: "}</strong>
+            {msg.contenido}
           </div>
         ))}
+        {isLoading && (
+          <div className="text-center mt-3">
+            <Spinner animation="border" role="status" variant="primary">
+              <span className="visually-hidden">Cargando...</span>
+            </Spinner>
+          </div>
+        )}
       </div>
-      <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Escribe tu mensaje..."
-        className="chat-input"
-      />
-      <button onClick={handleSendMessage} className="send-button">
-        Enviar
-      </button>
+      <div className="input-group mt-3">
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Escribe tu mensaje..."
+          className="form-control chat-input"
+          disabled={isLoading}
+        />
+        <button
+          onClick={handleSendMessage}
+          className="btn btn-primary send-button"
+          disabled={isLoading}
+        >
+          Enviar
+        </button>
+      </div>
     </div>
   );
 };
