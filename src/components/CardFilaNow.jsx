@@ -1,34 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "../css/CardFilaNow.css";
 
-const CardFilaNow = ({ turnoId = "A123" }) => {
-  const [turno, setTurno] = useState(null);
-
-  useEffect(() => {
-    // Simulate fetching turno data
-    const fetchTurno = async () => {
-      // Replace with actual data fetching logic
-      const turnoData = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({ id: turnoId, numero: "A123", tiempo: "10:30 AM" });
-        }, 1000);
-      });
-      setTurno(turnoData);
-    };
-
-    fetchTurno();
-  }, [turnoId]);
-
-  if (!turno) {
-    return <div>Loading...</div>;
-  }
-
+const CardFilaNow = ({ turnoId, numero, tiempo, segundos }) => {
+  const formatTiempo = () => {
+    const minutos = Math.floor(segundos / 60);
+    const segundosRestantes = segundos % 60;
+    return `${minutos}:${
+      segundosRestantes < 10 ? "0" : ""
+    }${segundosRestantes}`;
+  };
   return (
     <div className="card text-center">
       <div className="card-header">En atención</div>
       <div className="card-body">
-        <h1 className="text-success">{turno.numero}</h1>
-        <span className="text-muted lead">{turno.tiempo}</span>
+        <h1 className="text-success">Turno: {numero}</h1>
+        <span className="text-muted lead">Hora: {tiempo}</span>
+        <div className="mt-2">
+          <strong>Tiempo en atención:</strong> <span>{formatTiempo()}</span>
+        </div>
       </div>
     </div>
   );
