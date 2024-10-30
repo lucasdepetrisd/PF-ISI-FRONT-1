@@ -1,20 +1,54 @@
 import React, { useState, useEffect } from "react";
-//import { getTurnos } from "../helpers/filaApi";
-//import {getTurnosById} from "../helpers/filaApi";
-
 import TableFila from "../components/TableFila";
 import CardFilaNow from "../components/CardFilaNow";
+import { initializeDatabase } from "../data/dataFila"; // Importamos los datos de fila
 
 const HomeAdmin = () => {
-  //  const [fila, setFila] = useState(null);
+  useEffect(() => {
+    initializeDatabase();
+  }, []);
+  const filaUsuarios = JSON.parse(localStorage.getItem("filaUsuarios")) || [];
+  console.log("Datos recuperados de localStorage:", filaUsuarios);
 
-  //  useEffect(() => {
-  // traerFila();
-  //  }, []);
+  const [fila, setFila] = useState(filaUsuarios); // Carga la fila desde dataFila.js
+  const [turnoActual, setTurnoActual] = useState(null); // Estado del turno en atención
+  const [atendiendo, setAtendiendo] = useState(false); // Control del estado de atención
+  const [segundos, setSegundos] = useState(0); // Cronómetro en segundos
 
-  const traerFila = async () => {
-    const { data } = await getTurnos();
-    setFila(data);
+  // Función para seleccionar un turno a atender e iniciar cronómetro
+  const atenderTurno = (turno) => {
+    setTurnoActual(turno);
+    setAtendiendo(true);
+    setSegundos(0);
+  };
+  //logica para el cronometro
+  useEffect(() => {
+    let intervalo;
+    if (atendiendo) {
+      intervalo = setInterval(() => {
+        setSegundos((prev) => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(intervalo);
+    }
+    return () => clearInterval(intervalo);
+  }, [atendiendo]);
+
+  // Función para finalizar la atención y actualizar solo el turno actual como atendido
+  const finalizarAtencion = () => {
+    if (turnoActual) {
+      // Actualizar solo el turno actual en el estado de fila
+      const nuevoFila = fila.map((turno) =>
+        turno.id === turnoActual.id ? { ...turno, atendido: true } : turno
+      );
+
+      setFila(nuevoFila); // Actualiza el estado de la fila
+      localStorage.setItem("filaUsuarios", JSON.stringify(nuevoFila)); // Actualiza el localStorage
+
+      setAtendiendo(false); // Detener el cronómetro
+      setTurnoActual(null); // Resetear el turno actual
+      setSegundos(0); // Reiniciar el cronómetro
+    }
   };
 
   return (
@@ -24,23 +58,30 @@ const HomeAdmin = () => {
           <h2 className="color-title">Gestionar Fila Virtual</h2>
         </div>
       </div>
-      <div className="row mb-3">
+      <div className="row mt-2">
         <div className="col">
-          <div className="d-flex justify-content-end">
-            <button className="btn btn-outline-success">
-              <i className="fa fa-refresh" aria-hidden="true"></i>
+          {turnoActual && (
+            <CardFilaNow
+              turnoId={turnoActual.id}
+              numero={turnoActual.turno}
+              tiempo={turnoActual.fecha}
+              segundos={segundos}
+            />
+          )}
+        </div>
+      </div>
+      {atendiendo && (
+        <div className="row mt-3">
+          <div className="col text-center">
+            <button className="btn btn-success" onClick={finalizarAtencion}>
+              Finalizar Atención
             </button>
           </div>
         </div>
-      </div>
+      )}
       <div className="row mt-5">
         <div className="col text-center">
-          <TableFila /*fila={fila}*/ />
-        </div>
-      </div>
-      <div className="row">
-        <div className="col">
-          <CardFilaNow />
+          <TableFila fila={fila} onAtenderTurno={atenderTurno} />
         </div>
       </div>
     </div>
