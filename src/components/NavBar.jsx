@@ -35,14 +35,18 @@ const NavBar = ({ cambiarLogin }) => {
               {!isAdminPage && !isLoginAdmin && location.pathname !== "/" && (
                 <>
                   <li className="nav-item">
-                    <a className="nav-link active" aria-current="page" href="#">
+                    <NavLink
+                      className="nav-link active"
+                      aria-current="page"
+                      to="/faq"
+                    >
                       FAQ {/* En la bd estarán todas las FAQS, crear un   */}
-                    </a>
+                    </NavLink>
                   </li>
                   <li className="nav-item">
-                    <a className="nav-link" href="#">
+                    <NavLink className="nav-link" to="/chatbot">
                       Asistente Virtual
-                    </a>
+                    </NavLink>
                   </li>
                 </>
               )}

@@ -1,36 +1,54 @@
 import React, { useState, useEffect } from "react";
-import { Spinner } from "react-bootstrap"; // Asegúrate de tener react-bootstrap instalado
+import { Spinner } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 import "../css/turno.css";
 
 const TurnoPage = () => {
-  const [turnoActual, setTurnoActual] = useState("D35");
-  const [esTurno, setEsTurno] = useState(false);
-  const [personasAdelante, setPersonasAdelante] = useState(10); // Personas adelante
-  const [tiempoEspera, setTiempoEspera] = useState(15); // Tiempo de espera en minutos
-  const [progreso, setProgreso] = useState(0); // Progreso del spinner
+  const navigate = useNavigate();
 
-  // Simular actualización de turno y progreso
+  const [turnoActual, setTurnoActual] = useState("");
+  const [esTurno, setEsTurno] = useState(false);
+  const [personasAdelante, setPersonasAdelante] = useState(5); // Personas por defecto en la fila
+  const [tiempoEspera, setTiempoEspera] = useState(10); // Tiempo estimado en minutos
+  const [progreso, setProgreso] = useState(0);
+  const [datosTurno, setDatosTurno] = useState({ legajo: "", tramite: "" });
+
+  // Obtiene el último turno ingresado en filaUsuarios
+  useEffect(() => {
+    const filaUsuarios = JSON.parse(localStorage.getItem("filaUsuarios")) || [];
+    const ultimoTurno = filaUsuarios[filaUsuarios.length - 1]; // Selecciona el último registro
+
+    if (ultimoTurno) {
+      setDatosTurno({
+        legajo: ultimoTurno.legajo,
+        tramite: ultimoTurno.tramite,
+      });
+      setTurnoActual(ultimoTurno.turno); // Muestra el turno asignado
+    }
+  }, []);
+
+  // Simula el progreso del turno
   useEffect(() => {
     const interval = setInterval(() => {
       if (personasAdelante > 0) {
-        setPersonasAdelante(personasAdelante - 1);
-        setTiempoEspera(tiempoEspera - 1);
-        setProgreso(progreso + 10);
+        setPersonasAdelante((prev) => Math.max(prev - 1, 0)); // Evita valores negativos
+        setTiempoEspera((prev) => Math.max(prev - 1, 0)); // Evita valores negativos
+        setProgreso((prev) => Math.min(prev + 20, 100)); // Incrementa el progreso
       } else {
         setEsTurno(true);
         setTurnoActual("¡Es tu turno!");
       }
-    }, 2000); // Simulación de actualización cada 2 segundos
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [personasAdelante, tiempoEspera, progreso]);
+  }, [personasAdelante]);
 
   return (
     <div className="container text-center mt-1">
       <div className="row justify-content-center">
         <div className="col">
-          <h3>Juan Perez</h3>
+          <h3>{datosTurno.legajo}</h3>
         </div>
       </div>
 
@@ -42,7 +60,7 @@ const TurnoPage = () => {
           <div
             className={`card ${
               esTurno ? "bg-success text-white" : "color-title"
-            }`} // Cambia a verde cuando sea su turno
+            }`}
           >
             <div className="card-body size-font">
               <h1>{turnoActual}</h1>
@@ -77,28 +95,47 @@ const TurnoPage = () => {
         </div>
       </div>
 
-      {/* Spinner de progreso */}
       <div className="row justify-content-center mt-4">
         <div className="col-md-6">
-          <div>
-            <h5>Progreso del turno</h5>
-          </div>
-          <Spinner
-            animation="border"
-            role="status"
-            variant={esTurno ? "success" : "primary"}
-            className="size-spinner"
-          >
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-          <div className="mt-3">
-            <progress value={progreso} max="100" className="w-100"></progress>
-          </div>
+          {esTurno ? (
+            <div>
+              <h5>Preséntate en Dpto. Alumnos por {datosTurno.tramite}</h5>
+            </div>
+          ) : (
+            <>
+              <h5>Progreso del turno</h5>
+              <Spinner
+                animation="border"
+                role="status"
+                variant="primary"
+                className="size-spinner"
+              >
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+              <div className="mt-3">
+                <progress
+                  value={progreso}
+                  max="100"
+                  className="w-100"
+                ></progress>
+              </div>
+            </>
+          )}
         </div>
       </div>
+
       <div className="row justify-content-center">
         <div className="col-lg-4 col-md-6 col-sm-8">
-          <button type="button" className="btn btn-danger w-50">
+          <button
+            type="button"
+            className="btn btn-danger w-50"
+            onClick={() => {
+              localStorage.removeItem("legajo");
+              localStorage.removeItem("tramite");
+              localStorage.removeItem("filaUsuarios");
+              navigate("/");
+            }}
+          >
             Cancelar Turno
           </button>
         </div>

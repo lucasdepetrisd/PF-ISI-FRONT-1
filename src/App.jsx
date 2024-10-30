@@ -22,7 +22,7 @@ function App() {
 
   return (
     <>
-      <BrowserRouter>
+      <BrowserRouter basename="/PF-ISI-FRONT">
         <NavBar cambiarLogin={cambiarLogin} />
         <Routes>
           <Route path="/" element={<MainScreen />} />

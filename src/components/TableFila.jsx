@@ -1,7 +1,7 @@
 import React from "react";
-//import "./TableFila.css";
 
-const TableFila = ({ fila }) => {
+const TableFila = ({ fila, onAtenderTurno }) => {
+  console.log("Fila recibida en TableFila:", fila);
   return (
     <div>
       <h1 className="color-title bg-dark">Fila Virtual</h1>
@@ -10,19 +10,39 @@ const TableFila = ({ fila }) => {
           <tr>
             <th>Legajo</th>
             <th>Trámite</th>
-            <th>Hora</th>
+            <th>Fecha y Hora</th>
             <th>Posición en fila</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {/* {fila.map((fila) => (
-            <tr key={fila.id}>
-              <td>{fila.legajo}</td>
-              <td>{fila.tramite}</td>
-              <td>{fila.hora}</td>
-              <td>{fila.posicion}</td>
-            </tr>
-          ))} */}
+          {fila.map((turno) => {
+            console.log(turno.id); // Verificar el id
+            return (
+              <tr
+                key={turno.id}
+                className={turno.atendido ? "bg-secondary text-muted" : ""}
+              >
+                <td>{turno.legajo}</td>
+                <td>{turno.tramite}</td>
+                <td>{turno.fecha}</td>
+                <td>{turno.turno}</td>
+                <td>
+                  {!turno.atendido && (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => onAtenderTurno(turno)}
+                    >
+                      Atender
+                    </button>
+                  )}
+                  {turno.atendido && (
+                    <span className="text-success">Atendido</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
